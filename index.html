@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unstuck</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;700;900&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════
+   THEME TOKENS
+══════════════════════════════════════════ */
+:root {
+  --y:  #f5e642;
+  --pk: #ff3cac;
+  --bl: #00f0ff;
+}
+
+[data-theme="dark"] {
+  --bg:          #0a0a0a;
+  --bg2:         #111111;
+  --surface:     rgba(255,255,255,0.04);
+  --border:      rgba(255,255,255,0.09);
+  --border-h:    rgba(255,255,255,0.18);
+  --text:        #f5f5f0;
+  --text-sub:    rgba(245,245,240,0.45);
+  --text-muted:  rgba(245,245,240,0.22);
+  --input-bg:    rgba(245,230,66,0.03);
+  --input-focus: rgba(245,230,66,0.06);
+  --input-bdr:   rgba(245,230,66,0.2);
+  --input-bdr-f: #f5e642;
+  --tag-bg:      rgba(255,255,255,0.05);
+  --tag-bdr:     rgba(255,255,255,0.1);
+  --tag-col:     rgba(245,245,240,0.4);
+  --btn-bg:      #f5e642;
+  --btn-col:     #0a0a0a;
+  --btn-hover:   #ffffff;
+  --done-bg:     rgba(255,255,255,0.06);
+  --done-bdr:    rgba(255,255,255,0.1);
+  --done-col:    rgba(245,245,240,0.4);
+  --result-bdr:  #f5e642;
+  --result-bg:   rgba(245,230,66,0.04);
+  --hero-fade:   #0a0a0a;
+  --toggle-bg:   rgba(255,255,255,0.06);
+  --toggle-bdr:  rgba(255,255,255,0.12);
+  --toggle-col:  rgba(245,245,240,0.5);
+  --toggle-act-bg:  #f5f5f0;
+  --toggle-act-col: #0a0a0a;
+}
+
+[data-theme="light"] {
+  --bg:          #f5f5f0;
+  --bg2:         #ebebе4;
+  --surface:     rgba(0,0,0,0.03);
+  --border:      rgba(0,0,0,0.09);
+  --border-h:    rgba(0,0,0,0.2);
+  --text:        #111111;
+  --text-sub:    rgba(0,0,0,0.45);
+  --text-muted:  rgba(0,0,0,0.25);
+  --input-bg:    rgba(0,0,0,0.02);
+  --input-focus: rgba(0,0,0,0.04);
+  --input-bdr:   rgba(0,0,0,0.18);
+  --input-bdr-f: #111111;
+  --tag-bg:      rgba(0,0,0,0.05);
+  --tag-bdr:     rgba(0,0,0,0.1);
+  --tag-col:     rgba(0,0,0,0.4);
+  --btn-bg:      #111111;
+  --btn-col:     #f5f5f0;
+  --btn-hover:   #333333;
+  --done-bg:     rgba(0,0,0,0.04);
+  --done-bdr:    rgba(0,0,0,0.12);
+  --done-col:    rgba(0,0,0,0.35);
+  --result-bdr:  #111111;
+  --result-bg:   rgba(0,0,0,0.02);
+  --hero-fade:   #f5f5f0;
+  --toggle-bg:   rgba(0,0,0,0.05);
+  --toggle-bdr:  rgba(0,0,0,0.12);
+  --toggle-col:  rgba(0,0,0,0.4);
+  --toggle-act-bg:  #111111;
+  --toggle-act-col: #f5f5f0;
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+  cursor: none;
+  transition: background 0.4s ease, color 0.4s ease;
+}
+
+/* ── CURSOR ── */
+#cursor {
+  position: fixed;
+  width: 12px; height: 12px;
+  background: var(--y);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: difference;
+}
+#cursor.big { width: 48px; height: 48px; background: var(--pk); }
+
+/* ── GLOBAL THEME TOGGLE (fixed top-right) ── */
+#theme-toggle {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  background: var(--toggle-bg);
+  border: 1px solid var(--toggle-bdr);
+  border-radius: 50px;
+  padding: 4px;
+  gap: 2px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.t-pill {
+  border: none;
+  background: none;
+  border-radius: 50px;
+  padding: 7px 14px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: var(--toggle-col);
+  transition: all 0.25s;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.t-pill .pip {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  transition: background 0.25s;
+}
+
+.t-pill.dark-btn .pip  { background: #333; border: 1.5px solid rgba(255,255,255,0.3); }
+.t-pill.light-btn .pip { background: #e8e8e0; border: 1.5px solid rgba(0,0,0,0.2); }
+
+.t-pill.active {
+  background: var(--toggle-act-bg);
+  color: var(--toggle-act-col);
+}
+
+/* ══════════════════════════════════════════
+   PARALLAX HERO
+══════════════════════════════════════════ */
+.hero {
+  position: relative;
+  height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden; text-align: center;
+}
+
+.hero-bg {
+  position: absolute; inset: -20%;
+  background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1600&q=80') center/cover no-repeat;
+  will-change: transform; z-index: 0;
+  transition: filter 0.4s, opacity 0.4s;
+}
+[data-theme="dark"]  .hero-bg { filter: brightness(0.25) saturate(0.6); opacity: 1; }
+[data-theme="light"] .hero-bg { opacity: 0; pointer-events: none; }
+
+/* light hero gets its own bold editorial bg */
+[data-theme="light"] .hero {
+  background: #f5f5f0;
+}
+
+/* diagonal accent block behind text in light mode */
+[data-theme="light"] .hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 80% 20%, rgba(245,230,66,0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(255,60,172,0.08) 0%, transparent 60%);
+  z-index: 0;
+}
+
+/* big decorative number in light mode */
+[data-theme="light"] .hero::after {
+  content: '01';
+  position: absolute;
+  right: -2vw;
+  bottom: 5vh;
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(120px, 22vw, 260px);
+  font-weight: 900;
+  color: rgba(0,0,0,0.04);
+  letter-spacing: -0.06em;
+  line-height: 1;
+  z-index: 0;
+  user-select: none;
+}
+
+.hero-stripe {
+  position: absolute; bottom:0; left:0; right:0; height:120px; z-index:1;
+  background: linear-gradient(to bottom, transparent, var(--bg));
+  transition: background 0.4s;
+}
+
+.hero-content { position: relative; z-index:2; padding:0 24px; }
+
+.hero-eyebrow {
+  font-family: 'Unbounded', sans-serif;
+  font-size:10px; font-weight:400; letter-spacing:0.25em; text-transform:uppercase;
+  margin-bottom:20px;
+  opacity:0; animation: fadeUp 0.8s 0.2s ease both;
+  transition: color 0.4s;
+}
+[data-theme="dark"]  .hero-eyebrow { color: var(--y); }
+[data-theme="light"] .hero-eyebrow { color: #999; }
+
+.hero-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(52px,12vw,120px); font-weight:900;
+  line-height:0.92; letter-spacing:-0.04em; margin-bottom:24px;
+  opacity:0; animation: fadeUp 0.8s 0.4s ease both;
+  transition: color 0.4s;
+}
+[data-theme="dark"]  .hero-title { color: #f5f5f0; }
+[data-theme="light"] .hero-title { color: #111111; }
+
+[data-theme="dark"]  .hero-title em { font-style:italic; font-weight:300; color:var(--y); }
+[data-theme="light"] .hero-title em {
+  font-style:italic; font-weight:900;
+  color: transparent;
+  -webkit-text-stroke: 2px #111;
+}
+
+.hero-sub {
+  font-size:16px; font-weight:300; font-style:italic;
+  margin-bottom:48px;
+  opacity:0; animation: fadeUp 0.8s 0.6s ease both;
+  transition: color 0.4s;
+}
+[data-theme="dark"]  .hero-sub { color: rgba(245,245,240,0.5); }
+[data-theme="light"] .hero-sub { color: rgba(0,0,0,0.4); }
+
+.scroll-cue {
+  position:absolute; bottom:48px; left:50%; transform:translateX(-50%);
+  z-index:2; display:flex; flex-direction:column; align-items:center; gap:8px;
+  opacity:0; animation: fadeUp 0.8s 1s ease both;
+}
+.scroll-line {
+  width:1px; height:48px;
+  animation: scrollPulse 1.5s ease-in-out infinite;
+  transition: background 0.4s;
+}
+[data-theme="dark"]  .scroll-line { background: linear-gradient(to bottom, var(--y), transparent); }
+[data-theme="light"] .scroll-line { background: linear-gradient(to bottom, #111, transparent); }
+
+@keyframes scrollPulse {
+  0%,100% { opacity:0.3; transform:scaleY(1); }
+  50%     { opacity:1;   transform:scaleY(1.1); }
+}
+.scroll-text {
+  font-size:9px; letter-spacing:0.2em; text-transform:uppercase;
+  font-family:'Unbounded',sans-serif; transition: color 0.4s;
+}
+[data-theme="dark"]  .scroll-text { color: var(--y); }
+[data-theme="light"] .scroll-text { color: #999; }
+
+/* ══════════════════════════════════════════
+   PARALLAX STRIPS
+══════════════════════════════════════════ */
+.strip {
+  position:relative; height:50vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.strip-bg {
+  position:absolute; inset:-30%; background-size:cover; background-position:center;
+  will-change:transform; z-index:0;
+}
+.strip-overlay { position:absolute; inset:0; z-index:1; }
+.strip-text {
+  position:relative; z-index:2;
+  font-family:'Unbounded',sans-serif; font-weight:900;
+  font-size:clamp(28px,6vw,72px); letter-spacing:-0.03em;
+  text-align:center; line-height:1; padding:0 24px;
+}
+
+.strip1 .strip-bg { background-image: url('https://images.unsplash.com/photo-1483058712412-4245e9b90334?w=1400&q=80'); }
+[data-theme="dark"]  .strip1 .strip-bg { filter: brightness(0.2) hue-rotate(180deg); }
+[data-theme="light"] .strip1 .strip-bg { filter: brightness(0.45) hue-rotate(180deg) saturate(0.7); }
+.strip1 .strip-overlay { background: rgba(0,240,255,0.08); }
+.strip1 .strip-text { color: var(--bl); }
+
+.strip2 .strip-bg { background-image: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1400&q=80'); }
+[data-theme="dark"]  .strip2 .strip-bg { filter: brightness(0.15) saturate(1.5); }
+[data-theme="light"] .strip2 .strip-bg { filter: brightness(0.4) saturate(1.2); }
+.strip2 .strip-overlay { background: rgba(255,60,172,0.1); }
+.strip2 .strip-text { color: var(--pk); }
+
+/* ══════════════════════════════════════════
+   APP SECTION
+══════════════════════════════════════════ */
+.app-section {
+  position:relative; padding:80px 24px 120px;
+  max-width:640px; margin:0 auto;
+}
+
+.section-tag {
+  font-family:'Unbounded',sans-serif; font-size:9px; font-weight:400;
+  letter-spacing:0.22em; text-transform:uppercase;
+  color:var(--y); margin-bottom:12px;
+}
+
+.section-head {
+  font-family:'Unbounded',sans-serif;
+  font-size:clamp(22px,4vw,36px); font-weight:700;
+  letter-spacing:-0.03em; line-height:1.1; margin-bottom:40px;
+  color: var(--text);
+}
+
+/* task input */
+.task-add-box {
+  border: 1px solid var(--input-bdr);
+  border-radius:16px; padding:4px 4px 4px 20px;
+  display:flex; align-items:center; gap:8px; margin-bottom:16px;
+  background: var(--input-bg);
+  transition: border-color 0.2s, background 0.2s;
+}
+.task-add-box:focus-within {
+  border-color: var(--input-bdr-f);
+  background: var(--input-focus);
+}
+.task-field {
+  flex:1; background:none; border:none; outline:none;
+  font-family:'DM Sans',sans-serif; font-size:15px;
+  padding:14px 0; transition: color 0.3s;
+}
+[data-theme="dark"]  .task-field { color: #f5f5f0; }
+[data-theme="light"] .task-field { color: #111111; }
+[data-theme="dark"]  .task-field::placeholder { color: rgba(245,245,240,0.25); font-style:italic; }
+[data-theme="light"] .task-field::placeholder { color: rgba(0,0,0,0.3); font-style:italic; }
+
+.add-btn {
+  background: var(--btn-bg); color: var(--btn-col);
+  border:none; border-radius:12px; width:44px; height:44px;
+  font-size:24px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition: transform 0.15s, background 0.15s; flex-shrink:0;
+  padding-bottom:2px;
+}
+.add-btn:hover { background: var(--btn-hover); transform: rotate(90deg) scale(1.1); }
+
+/* task list */
+.task-list { list-style:none; display:flex; flex-direction:column; gap:6px; margin-bottom:32px; }
+
+.task-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 16px; border-radius:12px; cursor:default;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: all 0.2s; animation: slideIn 0.25s ease both;
+}
+.task-item:hover { border-color: var(--border-h); }
+.task-item.highlight {
+  border-color: var(--y);
+  background: rgba(245,230,66,0.06);
+  box-shadow: 0 0 0 1px rgba(245,230,66,0.12), 0 4px 24px rgba(245,230,66,0.08);
+}
+.task-item.done-item { opacity:0.3; }
+
+.task-num {
+  font-family:'Unbounded',sans-serif; font-size:10px;
+  color: var(--text-muted); flex-shrink:0; width:18px;
+}
+.task-item.highlight .task-num { color:var(--y); }
+
+.task-txt { flex:1; font-size:14px; color:var(--text-sub); line-height:1.4; }
+.task-item.highlight .task-txt { color:var(--text); }
+.task-item.done-item .task-txt { text-decoration:line-through; color:var(--text-muted); }
+
+.del-btn {
+  background:none; border:none; color:var(--text-muted);
+  font-size:20px; cursor:pointer; line-height:1; transition: color 0.15s; flex-shrink:0;
+}
+.del-btn:hover { color: var(--pk); }
+
+/* now button */
+.now-btn {
+  width:100%; background: var(--btn-bg); color: var(--btn-col);
+  border:none; border-radius:16px; padding:20px;
+  font-family:'Unbounded',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:0.04em; cursor:pointer; transition: all 0.25s; text-transform:uppercase;
+}
+.now-btn:hover { background: var(--btn-hover); transform:translateY(-3px); box-shadow:0 16px 48px rgba(0,0,0,0.2); }
+.now-btn:active { transform:translateY(0); }
+.now-btn:disabled { opacity:0.2; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* result */
+.result-wrap { margin-top:40px; display:none; }
+.result-wrap.show { display:block; animation: riseIn 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+
+.result-card {
+  border: 1.5px solid var(--result-bdr);
+  border-radius:20px; overflow:hidden;
+  background: var(--result-bg);
+}
+.result-img { width:100%; height:200px; object-fit:cover; display:block; filter:brightness(0.65) saturate(0.85); }
+.result-body { padding:24px; }
+.result-label {
+  font-family:'Unbounded',sans-serif; font-size:9px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--y); margin-bottom:12px;
+}
+.result-task-text {
+  font-family:'Unbounded',sans-serif; font-size:clamp(20px,4vw,30px); font-weight:700;
+  letter-spacing:-0.03em; line-height:1.15; color:var(--text); margin-bottom:20px;
+}
+.result-btns { display:flex; gap:8px; }
+
+.done-btn {
+  background: var(--btn-bg); color: var(--btn-col);
+  border:none; border-radius:10px; padding:12px 22px;
+  font-family:'Unbounded',sans-serif; font-size:11px; font-weight:700;
+  letter-spacing:0.04em; cursor:pointer; transition: all 0.15s; text-transform:uppercase;
+}
+.done-btn:hover { background: var(--btn-hover); transform:scale(1.04); }
+
+.skip-btn {
+  background: var(--done-bg); color: var(--done-col);
+  border: 1px solid var(--done-bdr);
+  border-radius:10px; padding:12px 20px;
+  font-family:'DM Sans',sans-serif; font-size:13px; cursor:pointer; transition: all 0.15s;
+}
+.skip-btn:hover { color:var(--text); border-color:var(--border-h); }
+
+/* all done */
+.alldone { margin-top:40px; text-align:center; padding:40px 0; display:none; }
+.alldone.show { display:block; animation: riseIn 0.4s ease both; }
+.alldone-big {
+  font-family:'Unbounded',sans-serif; font-size:clamp(28px,5vw,52px);
+  font-weight:900; letter-spacing:-0.03em; color:var(--y); margin-bottom:12px;
+}
+.alldone-sub { font-size:14px; color:var(--text-sub); font-style:italic; }
+
+/* ══════════════════════════════════════════
+   BORED SECTION — full image cards
+══════════════════════════════════════════ */
+.ideas-section {
+  padding:0 24px 80px; max-width:640px; margin:0 auto;
+}
+
+.ideas-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* tall card on left, short on right (alternating) */
+.ideas-grid .idea-card:nth-child(1),
+.ideas-grid .idea-card:nth-child(4) { grid-row: span 1; aspect-ratio: 1 / 1.1; }
+.ideas-grid .idea-card:nth-child(2) { grid-row: span 2; aspect-ratio: auto; }
+.ideas-grid .idea-card:nth-child(3) { aspect-ratio: 1 / 0.75; }
+
+.idea-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.idea-card:hover { transform: scale(1.025); }
+
+/* full-bleed image */
+.idea-img {
+  position: absolute;
+  inset: 0; width:100%; height:100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease, filter 0.3s;
+}
+.idea-card:hover .idea-img { transform: scale(1.06); }
+
+/* dark overlay so text is readable */
+.idea-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.05) 0%,
+    rgba(0,0,0,0.15) 40%,
+    rgba(0,0,0,0.72) 100%
+  );
+  z-index: 1;
+  transition: background 0.3s;
+}
+.idea-card:hover::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0.0) 0%,
+    rgba(0,0,0,0.1) 35%,
+    rgba(0,0,0,0.8) 100%
+  );
+}
+
+/* overlay text */
+.idea-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px;
+  z-index: 2;
+}
+
+.idea-tag {
+  display: inline-block;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 8px; font-weight: 400;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 6px;
+  backdrop-filter: blur(6px);
+}
+
+.idea-name {
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(13px, 2vw, 16px);
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-bottom: 4px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.4);
+}
+
+.idea-desc {
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.45;
+  font-style: italic;
+}
+
+/* emoji bubble top-left */
+.idea-emoji {
+  position: absolute;
+  top: 12px; left: 12px;
+  z-index: 2;
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px;
+  transition: transform 0.2s;
+}
+.idea-card:hover .idea-emoji { transform: scale(1.2) rotate(-8deg); }
+
+/* more ideas btn */
+.more-btn {
+  margin-top: 14px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 10px;
+  color: var(--text-sub);
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  transition: all 0.2s;
+}
+.more-btn:hover { border-color: var(--border-h); color: var(--text); }
+
+/* ══════════════════════════════════════════
+   FOOTER STRIP
+══════════════════════════════════════════ */
+.footer-strip {
+  position:relative; height:40vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+.footer-bg {
+  position:absolute; inset:-30%;
+  background: url('https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1400&q=80') center/cover;
+  will-change:transform;
+  transition: filter 0.4s;
+}
+[data-theme="dark"]  .footer-bg { filter: brightness(0.15) saturate(0.5); }
+[data-theme="light"] .footer-bg { filter: brightness(0.4)  saturate(0.4); }
+.footer-overlay {
+  position:absolute; inset:0;
+  background: linear-gradient(to bottom, var(--bg) 0%, transparent 30%, transparent 70%, var(--bg) 100%);
+  transition: background 0.4s;
+}
+.footer-text {
+  position:relative; z-index:2;
+  font-family:'Unbounded',sans-serif; font-size:clamp(10px,2vw,16px);
+  font-weight:300; letter-spacing:0.2em; text-transform:uppercase;
+  color: var(--text-muted); text-align:center;
+}
+
+/* ══════════════════════════════════════════
+   ANIMATIONS + UTILS
+══════════════════════════════════════════ */
+@keyframes fadeUp  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
+@keyframes riseIn  { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+.reveal { opacity:0; transform:translateY(24px); transition:opacity 0.7s ease, transform 0.7s ease; }
+.reveal.in { opacity:1; transform:translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<!-- ── GLOBAL THEME TOGGLE ── -->
+<div id="theme-toggle">
+  <button class="t-pill dark-btn active" onclick="setTheme('dark')">
+    <span class="pip"></span> Dark
+  </button>
+  <button class="t-pill light-btn" onclick="setTheme('light')">
+    <span class="pip"></span> Light
+  </button>
+</div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-stripe"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Stop scrolling. Start doing.</div>
+    <h1 class="hero-title">you're not<br><em>lazy.</em></h1>
+    <p class="hero-sub">you just need to know what to do next.</p>
+  </div>
+  <div class="scroll-cue">
+    <div class="scroll-line"></div>
+    <div class="scroll-text">scroll</div>
+  </div>
+</section>
+
+<!-- ── STRIP 1 ── -->
+<div class="strip strip1">
+  <div class="strip-bg" id="strip1Bg"></div>
+  <div class="strip-overlay"></div>
+  <div class="strip-text reveal">dump every task<br>in your head.</div>
+</div>
+
+<!-- ── APP ── -->
+<section class="app-section">
+  <div class="section-tag reveal">the app</div>
+  <div class="section-head reveal">Write it.<br>We'll tell you what's next.</div>
+
+  <div class="task-add-box reveal">
+    <input class="task-field" id="taskInput" placeholder="What's on your mind? Just type it…"
+      onkeydown="if(event.key==='Enter') addTask()">
+    <button class="add-btn" onclick="addTask()">+</button>
+  </div>
+
+  <ul class="task-list" id="taskList"></ul>
+
+  <button class="now-btn" id="nowBtn" onclick="pickNext()" disabled>
+    What should I do right now? →
+  </button>
+
+  <div class="result-wrap" id="resultWrap">
+    <div class="result-card">
+      <img class="result-img" id="resultImg" src="" alt=""
+        onerror="this.style.display='none'">
+      <div class="result-body">
+        <div class="result-label">Do this now</div>
+        <div class="result-task-text" id="resultText"></div>
+        <div class="result-btns">
+          <button class="done-btn" onclick="markDone()">✓ Done</button>
+          <button class="skip-btn" onclick="skipTask()">skip →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alldone" id="allDone">
+    <div class="alldone-big">🎉 All done.</div>
+    <div class="alldone-sub">Seriously, go touch some grass.</div>
+  </div>
+</section>
+
+<!-- ── STRIP 2 ── -->
+<div class="strip strip2">
+  <div class="strip-bg" id="strip2Bg"></div>
+  <div class="strip-overlay"></div>
+  <div class="strip-text reveal">stuck? try something<br>completely new.</div>
+</div>
+
+<!-- ── BORED SECTION ── -->
+<section class="ideas-section">
+  <div class="section-tag reveal" style="margin-top:60px">when you're bored</div>
+  <div class="section-head reveal">Try something<br>worth doing.</div>
+
+  <div class="ideas-grid" id="ideasGrid"></div>
+
+  <button class="more-btn reveal" onclick="loadIdeas()">↻ Shuffle ideas</button>
+</section>
+
+<!-- ── FOOTER ── -->
+<div class="footer-strip">
+  <div class="footer-bg" id="footerBg"></div>
+  <div class="footer-overlay"></div>
+  <div class="footer-text">unstuck · one action at a time · stop doom scrolling</div>
+</div>
+
+<script>
+// ── CURSOR ──────────────────────────────────────
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+});
+function attachCursor() {
+  document.querySelectorAll('button, .task-item, .idea-card').forEach(el => {
+    el.addEventListener('mouseenter', () => cur.classList.add('big'));
+    el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+  });
+}
+
+// ── THEME TOGGLE ────────────────────────────────
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelectorAll('.t-pill').forEach(b => {
+    b.classList.toggle('active', b.classList.contains(t + '-btn'));
+  });
+  localStorage.setItem('now_theme', t);
+}
+
+// restore saved theme
+const savedTheme = localStorage.getItem('now_theme') || 'dark';
+if (savedTheme !== 'dark') setTheme(savedTheme);
+
+// ── PARALLAX ────────────────────────────────────
+const parallaxEls = [
+  { el: document.getElementById('heroBg'),   speed: 0.4 },
+  { el: document.getElementById('strip1Bg'), speed: 0.35 },
+  { el: document.getElementById('strip2Bg'), speed: 0.35 },
+  { el: document.getElementById('footerBg'), speed: 0.3  },
+];
+function onScroll() {
+  parallaxEls.forEach(({el, speed}) => {
+    if (!el) return;
+    const rect = el.parentElement.getBoundingClientRect();
+    const offset = rect.top + rect.height / 2 - window.innerHeight / 2;
+    el.style.transform = `translateY(${offset * speed}px)`;
+  });
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+// ── SCROLL REVEAL ───────────────────────────────
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ── TASKS ───────────────────────────────────────
+let tasks   = JSON.parse(localStorage.getItem('now_tasks3') || '[]');
+let current = null;
+let skipped = new Set();
+
+// ── SMART IMAGE MATCHER ──────────────────────────
+const imgMap = [
+  { keys: ['draw','sketch','art','paint','illustrat','doodle','watercolor'],
+    img: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80' },
+  { keys: ['archery','bow','arrow'],
+    img: 'https://images.unsplash.com/photo-1602160677056-ea67f30c44d3?w=800&q=80' },
+  { keys: ['skate','skateboard','longboard'],
+    img: 'https://images.unsplash.com/photo-1547447134-cd3f5c716030?w=800&q=80' },
+  { keys: ['swim','pool','dive','surf'],
+    img: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80' },
+  { keys: ['run','jog','marathon','sprint'],
+    img: 'https://images.unsplash.com/photo-1571008887538-b36bb32f4571?w=800&q=80' },
+  { keys: ['gym','workout','lift','exercise','fitness','train','weightlift'],
+    img: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800&q=80' },
+  { keys: ['email','meeting','work','report','project','task'],
+    img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80' },
+  { keys: ['yoga','stretch','meditat','breathe','mindful'],
+    img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&q=80' },
+  { keys: ['read','book','novel','study','learn','chapter'],
+    img: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800&q=80' },
+  { keys: ['code','program','develop','build','app','website','debug'],
+    img: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=800&q=80' },
+  { keys: ['music','guitar','piano','drum','sing','instrument'],
+    img: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=80' },
+  { keys: ['cook','bake','recipe','kitchen','meal','food'],
+    img: 'https://images.unsplash.com/photo-1466637574441-749b8f19452f?w=800&q=80' },
+  { keys: ['write','journal','blog','story','essay','letter','poem'],
+    img: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80' },
+  { keys: ['photo','camera','photograph','shoot'],
+    img: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&q=80' },
+  { keys: ['language','spanish','french','japanese','hindi','swahili','german','arabic','mandarin'],
+    img: 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&q=80' },
+  { keys: ['clean','organiz','tidy','declutter','laundry','dishes'],
+    img: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80' },
+  { keys: ['walk','hike','trail','nature','outside','park'],
+    img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80' },
+  { keys: ['climb','boulder','rock'],
+    img: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&q=80' },
+  { keys: ['dance','ballet','choreograph'],
+    img: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&q=80' },
+  { keys: ['email','meeting','work','report','project','task'],
+    img: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80' },
+  { keys: ['coffee','brew','cafe','tea'],
+    img: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=800&q=80' },
+  { keys: ['travel','trip','pack','journey','flight'],
+    img: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&q=80' },
+  { keys: ['game','chess','puzzle','rubik'],
+    img: 'https://images.unsplash.com/photo-1611196353006-7a7d25b49f4c?w=800&q=80' },
+  { keys: ['plant','garden','flower','grow'],
+    img: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80' },
+  { keys: ['bike','cycle','cycling','bicycle'],
+    img: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80' },
+  { keys: ['box','boxing','kickbox','martial','karate','judo','mma'],
+    img: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=800&q=80' },
+];
+
+const fallbackImgs = [
+  'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=800&q=80',
+  'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800&q=80',
+  'https://images.unsplash.com/photo-1517842645767-c639042777db?w=800&q=80',
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+  'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=800&q=80',
+];
+
+function getTaskImg(text) {
+  const t = text.toLowerCase();
+  for (const entry of imgMap) {
+    if (entry.keys.some(k => t.includes(k))) return entry.img;
+  }
+  return fallbackImgs[text.length % fallbackImgs.length];
+}
+
+function save() { localStorage.setItem('now_tasks3', JSON.stringify(tasks)); }
+
+function render() {
+  const ul = document.getElementById('taskList');
+  ul.innerHTML = '';
+  const pending = tasks.filter(t => !t.done);
+  document.getElementById('nowBtn').disabled = pending.length === 0;
+
+  tasks.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.className = 'task-item'
+      + (t.done ? ' done-item' : '')
+      + (i === current && !t.done ? ' highlight' : '');
+    li.innerHTML = `
+      <span class="task-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="task-txt">${t.text}</span>
+      <button class="del-btn" onclick="removeTask(${i})">×</button>`;
+    ul.appendChild(li);
+  });
+  attachCursor();
+}
+
+function addTask() {
+  const inp  = document.getElementById('taskInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  tasks.push({ text, done: false });
+  save(); render(); inp.value = '';
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('allDone').classList.remove('show');
+}
+
+function removeTask(i) {
+  if (current === i) current = null;
+  else if (current !== null && current > i) current--;
+  tasks.splice(i, 1);
+  save(); render();
+  document.getElementById('resultWrap').classList.remove('show');
+  document.getElementById('allDone').classList.remove('show');
+}
+
+function pickNext(skipIdx) {
+  const pending = tasks.map((t,i) => ({...t,i})).filter(t => !t.done && t.i !== skipIdx);
+  let pool = pending.filter(t => !skipped.has(t.i));
+  if (!pool.length) { skipped.clear(); pool = pending; }
+  if (!pool.length) {
+    document.getElementById('resultWrap').classList.remove('show');
+    document.getElementById('allDone').classList.add('show');
+    return;
+  }
+  const pick = pool[0];
+  current = pick.i;
+  render();
+  document.getElementById('resultText').textContent = pick.text;
+  document.getElementById('resultImg').src = getTaskImg(pick.text);
+  document.getElementById('allDone').classList.remove('show');
+  const rw = document.getElementById('resultWrap');
+  rw.classList.remove('show');
+  void rw.offsetWidth;
+  rw.classList.add('show');
+  setTimeout(() => rw.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+}
+
+function skipTask() {
+  if (current !== null) skipped.add(current);
+  pickNext(current);
+}
+
+function markDone() {
+  if (current === null) return;
+  tasks[current].done = true;
+  skipped.delete(current);
+  save(); render(); pickNext();
+}
+
+// ── BORED IDEAS (pure image cards) ──────────────
+const ideasPool = [
+  { name: 'Skateboarding',    emoji: '🛹', desc: 'Fall down seven times, stand up eight.',        tag: 'physical',  img: 'https://images.unsplash.com/photo-1547447134-cd3f5c716030?w=800&q=80' },
+  { name: 'Learn Japanese',   emoji: '🇯🇵', desc: 'Start with 5 hiragana. Right now.',              tag: 'language',  img: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=800&q=80' },
+  { name: 'Open Water Swim',  emoji: '🌊', desc: 'The ocean doesn\'t care about your problems.',   tag: 'physical',  img: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=800&q=80' },
+  { name: 'Rock Climbing',    emoji: '🧗', desc: 'Every problem has a solution. Literally.',       tag: 'adventure', img: 'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&q=80' },
+  { name: 'Film Photography', emoji: '📷', desc: '36 shots. No delete button. Think first.',       tag: 'creative',  img: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=800&q=80' },
+  { name: 'Bouldering',       emoji: '🪨', desc: 'Puzzle-solving meets full body workout.',        tag: 'adventure', img: 'https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=800&q=80' },
+  { name: 'Pottery',          emoji: '🏺', desc: 'Get your hands dirty. Make something real.',     tag: 'craft',     img: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80' },
+  { name: 'Freediving',       emoji: '🤿', desc: 'Hold your breath. Go deeper. Find stillness.',   tag: 'physical',  img: 'https://images.unsplash.com/photo-1682687220063-4742bd7fd538?w=800&q=80' },
+  { name: 'Learn Spanish',    emoji: '🇪🇸', desc: 'Hola. That\'s one word down. Keep going.',       tag: 'language',  img: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=800&q=80' },
+  { name: 'Street Art',       emoji: '🎨', desc: 'Even a sketchbook counts. Start small.',         tag: 'creative',  img: 'https://images.unsplash.com/photo-1499781350541-7783f6c6a0c8?w=800&q=80' },
+  { name: 'Cycling',          emoji: '🚴', desc: 'Pick a road. See where it goes.',                tag: 'physical',  img: 'https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=800&q=80' },
+  { name: 'Boxing',           emoji: '🥊', desc: 'Hit something. Feel incredible. Repeat.',        tag: 'physical',  img: 'https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=800&q=80' },
+  { name: 'Astrophotography', emoji: '🌌', desc: 'Wait for dark. Point up. Be patient.',           tag: 'creative',  img: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=800&q=80' },
+  { name: 'Sourdough Bread',  emoji: '🍞', desc: 'Feed a starter. Bake something ancient.',        tag: 'culinary',  img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&q=80' },
+  { name: 'Learn Piano',      emoji: '🎹', desc: 'One scale. That\'s your whole first session.',   tag: 'music',     img: 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=800&q=80' },
+  { name: 'Trail Running',    emoji: '🏃', desc: 'Dirt under feet. Head totally empty.',           tag: 'physical',  img: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&q=80' },
+  { name: 'Urban Sketching',  emoji: '✏️', desc: 'Draw what\'s in front of you. Right now.',       tag: 'creative',  img: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&q=80' },
+  { name: 'Surfing',          emoji: '🏄', desc: 'The wave doesn\'t wait. Neither should you.',    tag: 'adventure', img: 'https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=800&q=80' },
+  { name: 'Learn Arabic',     emoji: '🌙', desc: 'Right to left. A whole new direction.',          tag: 'language',  img: 'https://images.unsplash.com/photo-1553913861-c0fddf2619ee?w=800&q=80' },
+  { name: 'Candle Making',    emoji: '🕯️', desc: 'Slow. Meditative. Smells incredible.',           tag: 'craft',     img: 'https://images.unsplash.com/photo-1602028915047-37269d1a73f7?w=800&q=80' },
+];
+
+let shownIdeas = [];
+
+function loadIdeas() {
+  const pool     = ideasPool.filter(x => !shownIdeas.find(s => s.name === x.name));
+  const source   = pool.length >= 4 ? pool : ideasPool;
+  const shuffled = [...source].sort(() => Math.random() - 0.5).slice(0, 4);
+  shownIdeas = shuffled;
+
+  const grid = document.getElementById('ideasGrid');
+  grid.innerHTML = '';
+
+  shuffled.forEach((idea, i) => {
+    const card = document.createElement('div');
+    card.className = 'idea-card';
+    card.style.animationDelay = `${i * 0.06}s`;
+    card.style.animation = 'riseIn 0.35s ease both';
+    card.innerHTML = `
+      <img class="idea-img" src="${idea.img}" alt="${idea.name}" loading="lazy"
+        onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#1a1a2e,#16213e)'">
+      <div class="idea-emoji">${idea.emoji}</div>
+      <div class="idea-overlay">
+        <div class="idea-tag">${idea.tag}</div>
+        <div class="idea-name">${idea.name}</div>
+        <div class="idea-desc">${idea.desc}</div>
+      </div>`;
+    card.onclick = () => {
+      document.getElementById('taskInput').value = idea.name;
+      document.querySelector('.app-section').scrollIntoView({ behavior:'smooth' });
+      setTimeout(() => document.getElementById('taskInput').focus(), 600);
+    };
+    grid.appendChild(card);
+  });
+  attachCursor();
+}
+
+// ── INIT ────────────────────────────────────────
+render();
+loadIdeas();
+</script>
+</body>
+</html>
