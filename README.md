@@ -7,16 +7,6 @@ one button. one task. no excuses.
 
 ---
 
-## 👀 what it looks like
-
-![Hero](screenshots/dark-hero.png)
-
-![Tasks](screenshots/task-result.png)
-
-![Bored](screenshots/bored-section.png)
-
----
-
 ## what it does
 
 drop everything that's living rent free in your head into the app. hit the button. it picks one thing and tells you to go do it. that's literally it.
@@ -35,22 +25,6 @@ no ai subscription. no 5am routine. no notion template. just you and one task.
 - **parallax + animations** — it's giving main character energy
 - **zero dependencies** — one html file. that's the whole app.
 
----
-
-## 🚀 live demo
-
-> **[try it here →](https://CodebyCharvi.github.io/unstuck)**
-
----
-
-## run it locally
-
-literally just download and open. no npm install. no vite. no webpack. nothing.
-```bash
-git clone https://github.com/CodebyCharvi/unstuck.git
-cd unstuck
-# open index.html in your browser
-# or right click → open with live server in vscode
 ```
 
 ---
